@@ -37,8 +37,13 @@ static class Program {
     public static bool StartWithSettings;
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern IntPtr FindWindow(string name,string title);
     [DllImport("user32.dll")] static extern bool PostMessage(IntPtr window,uint message,IntPtr w,IntPtr l);
+    [DllImport("user32.dll")] static extern bool SetProcessDpiAwarenessContext(IntPtr context);
+    [DllImport("user32.dll")] static extern bool SetProcessDPIAware();
     [STAThread] static void Main(string[] args) {
         if (args.Length == 1 && args[0] == "--self-test") { Test(); return; }
+        // Use physical client pixels on scaled/high-DPI and mixed-DPI screens.
+        try { if(!SetProcessDpiAwarenessContext(new IntPtr(-4))) SetProcessDPIAware(); }
+        catch(EntryPointNotFoundException) { SetProcessDPIAware(); }
         StartWithSettings=Array.IndexOf(args,"--settings")>=0;
         bool created;
         using (var mutex = new Mutex(true, "Local\\MisCofresCounterV1", out created)) {

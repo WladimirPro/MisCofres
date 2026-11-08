@@ -2,7 +2,7 @@ using System;
 using System.IO;
 static class RegressionTests {
     static void Assert(bool condition,string message) { if(!condition) throw new Exception(message); }
-    static void Main() {
+    static void Main(string[] args) {
         string folder=Path.Combine(Path.GetTempPath(),"MisCofres-tests-"+Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(folder);
         try {
@@ -13,10 +13,13 @@ static class RegressionTests {
             for(int i=0;i<5;i++) Assert(new CounterStore(path).Count==42,"Reopening reset progress");
             Assert(File.ReadAllText(path+".bak")=="41","Previous total backup missing");
             string prefsPath=Path.Combine(folder,"ajustes.xml");
-            var prefs=new AppSettings { SizePercent=125,AddBinding=116,Automatic=false };
+            var prefs=new AppSettings { SizePercent=125,AddBinding=116,Automatic=false,AdaptiveHud=false };
             prefs.Save(prefsPath);
             Assert(AppSettings.Load(prefsPath).SizePercent==125,"Settings did not persist");
             Assert(!AppSettings.Load(prefsPath).Automatic,"Automatic preference changed");
+            Assert(!AppSettings.Load(prefsPath).AdaptiveHud,"Manual HUD preference changed");
+            File.WriteAllText(prefsPath,"<AppSettings><SizePercent>100</SizePercent></AppSettings>");
+            Assert(AppSettings.Load(prefsPath).AdaptiveHud,"Legacy settings did not enable adaptive HUD");
             Assert(new CounterStore(path).Count==42,"Saving settings reset progress");
             counter.Set(0);
             Assert(new CounterStore(path).Count==0,"Explicit reset did not persist");
@@ -38,6 +41,7 @@ static class RegressionTests {
             gate.Observe(false,now.AddSeconds(6));
             Assert(gate.Observe(true,now.AddSeconds(7)),"New notification missed");
             Console.WriteLine("PASS: progress survives reopening/settings, explicit reset, backup, corruption protection, mouse buttons and duplicate suppression.");
+            AdaptiveTests.Run(args[0]);
         } finally {
             foreach(var file in Directory.GetFiles(folder)) File.Delete(file);
             Directory.Delete(folder);

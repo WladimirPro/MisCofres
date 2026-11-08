@@ -9,6 +9,7 @@ public sealed class AppSettings {
     // 2/1 = side mouse buttons, 0 = disabled, 116..119 = F5..F8.
     public int AddBinding=2;
     public bool Automatic=true;
+    public bool AdaptiveHud=true;
     public int NoticeScalePercent=100;
     public decimal ScanX=60,ScanY=25,ScanWidth=20,ScanHeight=15;
     public AppSettings Copy() { return (AppSettings)MemberwiseClone(); }

@@ -7,7 +7,7 @@ sealed class SettingsForm : Form {
     readonly Func<AppSettings,Bitmap> render;
     readonly AppSettings original;
     readonly NumericUpDown size,opacity,x,y,notice,scanX,scanY,scanWidth,scanHeight;
-    readonly CheckBox automatic;
+    readonly CheckBox automatic,adaptive;
     readonly ComboBox binding;
     readonly PictureBox preview=new PictureBox();
     readonly Button colorButton;
@@ -66,18 +66,21 @@ sealed class SettingsForm : Form {
         AddLabel(controls,"Ctrl+F10      Activar / terminar de mover",20,268);
 
         automatic=new CheckBox { Text="Contar automaticamente al abrir cofres",Checked=settings.Automatic,AutoSize=true,Location=new Point(20,20) }; detection.Controls.Add(automatic);
-        var help=new Label { Text="Reconoce el aviso COFRE en espanol. Funciona localmente.\nOtros tamanos de HUD pueden necesitar ajustar esta zona.",Location=new Point(20,54),Size=new Size(520,44),ForeColor=Color.LightSteelBlue }; detection.Controls.Add(help);
-        AddLabel(detection,"Escala del aviso (100% = original)",20,112);
-        notice=Number(detection,50,200,settings.NoticeScalePercent,370,108,100);
-        AddLabel(detection,"Zona de avisos (% de la ventana del juego)",20,158);
-        AddLabel(detection,"X",20,198); scanX=Number(detection,0,98,settings.ScanX,44,192,78);
-        AddLabel(detection,"Y",145,198); scanY=Number(detection,0,98,settings.ScanY,169,192,78);
-        AddLabel(detection,"Ancho",267,198); scanWidth=Number(detection,2,100,settings.ScanWidth,324,192,78);
-        AddLabel(detection,"Alto",423,198); scanHeight=Number(detection,2,100,settings.ScanHeight,467,192,78);
+        adaptive=new CheckBox { Text="Adaptar automaticamente al HUD y a la resolucion",Checked=settings.AdaptiveHud,AutoSize=true,Location=new Point(20,52) }; detection.Controls.Add(adaptive);
+        var help=new Label { Text="Busca texto de varios tamanos en una zona amplia. Avisos en espanol.\nSi no lo detecta, desactiva esta opcion para ajustar la zona a mano.",Location=new Point(20,83),Size=new Size(520,40),ForeColor=Color.LightSteelBlue }; detection.Controls.Add(help);
+        AddLabel(detection,"Escala manual del aviso (100% = original)",20,138);
+        notice=Number(detection,50,200,settings.NoticeScalePercent,390,132,100);
+        AddLabel(detection,"Zona manual (% de la ventana del juego)",20,179);
+        AddLabel(detection,"X",20,217); scanX=Number(detection,0,98,settings.ScanX,44,211,78);
+        AddLabel(detection,"Y",145,217); scanY=Number(detection,0,98,settings.ScanY,169,211,78);
+        AddLabel(detection,"Ancho",267,217); scanWidth=Number(detection,2,100,settings.ScanWidth,324,211,78);
+        AddLabel(detection,"Alto",423,217); scanHeight=Number(detection,2,100,settings.ScanHeight,467,211,78);
         foreach(var n in new[]{scanX,scanY,scanWidth,scanHeight}) { n.DecimalPlaces=1; n.Increment=.5m; }
-        var reset=Button(detection,"Restaurar detector original",20,241,230);
-        reset.Click+=delegate { notice.Value=100; scanX.Value=60; scanY.Value=25; scanWidth.Value=20; scanHeight.Value=15; };
-        var detail=new Label { Text="Sube la escala si el texto del aviso se ve mas grande.\nEstos ajustes no cambian la resolucion ni el HUD de Fortnite.",Location=new Point(20,288),Size=new Size(520,40),ForeColor=Color.LightSteelBlue }; detection.Controls.Add(detail);
+        var reset=Button(detection,"Restaurar detector original",20,251,230);
+        reset.Click+=delegate { adaptive.Checked=false; notice.Value=100; scanX.Value=60; scanY.Value=25; scanWidth.Value=20; scanHeight.Value=15; };
+        EventHandler updateManual=delegate { foreach(var n in new[]{notice,scanX,scanY,scanWidth,scanHeight}) n.Enabled=!adaptive.Checked; reset.Enabled=!adaptive.Checked; };
+        adaptive.CheckedChanged+=updateManual; updateManual(null,EventArgs.Empty);
+        var detail=new Label { Text="No cambia los ajustes de Fortnite. Los textos muy pequenos o\nlos avisos tapados pueden requerir una correccion manual.",Location=new Point(20,292),Size=new Size(520,38),ForeColor=Color.LightSteelBlue }; detection.Controls.Add(detail);
 
         feedback=new Label { Location=new Point(24,472),Size=new Size(570,20),ForeColor=Color.FromArgb(255,210,100) }; Controls.Add(feedback);
         var cancel=Button(this,"Cerrar",274,504,90); cancel.Click+=delegate { Close(); };
@@ -100,6 +103,7 @@ sealed class SettingsForm : Form {
         var s=original.Copy();
         s.SizePercent=(int)size.Value; s.OpacityPercent=(int)opacity.Value; s.NumberColor=ColorTranslator.ToHtml(numberColor);
         s.X=(int)x.Value; s.Y=(int)y.Value; s.AddBinding=bindings[binding.SelectedIndex]; s.Automatic=automatic.Checked;
+        s.AdaptiveHud=adaptive.Checked;
         s.NoticeScalePercent=(int)notice.Value; s.ScanX=scanX.Value; s.ScanY=scanY.Value; s.ScanWidth=scanWidth.Value; s.ScanHeight=scanHeight.Value;
         return s;
     }

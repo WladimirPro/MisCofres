@@ -25,9 +25,13 @@ Los datos están en `%LOCALAPPDATA%\MisCofres`. `total.txt` guarda el total y `t
 
 El detector compara la palabra **COFRE** del aviso de experiencia con una plantilla visual. Solo observa una zona del juego cuando Fortnite está en primer plano. No usa IA, APIs, servidores ni uso de ChatGPT; tampoco lee memoria del juego ni pulsa controles.
 
-Está calibrado con un HUD en español a 1920×1080. F11 permite ajustar la zona y escala del aviso. Usa pantalla completa en ventana o modo ventana para ver el contador encima.
+Desde v1.1, **Adaptar automáticamente al HUD y a la resolución** está activado por defecto en F11 → Automático, también al cargar los ajustes de v1.0. Busca grupos de letras de varios tamaños en una zona más amplia y compara su forma normalizada con COFRE. La escala se calcula a partir de la altura de la ventana para conservar las proporciones en monitores ultrapanorámicos. La app solicita coordenadas físicas para evitar depender de la escala de Windows.
 
-**Limitaciones:** cambios de HUD, avisos superpuestos o aperturas muy seguidas pueden causar omisiones. Los cofres de espíritus de 900 PE no están validados: súmalos manualmente si no se detectan. No hay detección independiente de las palancas traseras del mando.
+Si necesitas el detector anterior, desactiva esa opción y ajusta la zona y escala manuales. Usa pantalla completa en ventana o modo ventana para ver el contador encima.
+
+**Limitaciones:** no garantiza todos los HUD. Sigue dependiendo del texto COFRE en español; textos demasiado pequeños, otra fuente, avisos tapados o aperturas muy seguidas pueden causar omisiones. Los cofres de espíritus de 900 PE no están validados: súmalos manualmente si no se detectan. No hay detección independiente de las palancas traseras del mando.
+
+Validación de v1.1: pruebas con un recorte real del aviso reescalado a 1–3 veces el tamaño de referencia, normalización de 1080p/1440p/4K/ultrapanorámico y rechazo de un aviso de escudo roto. Además se revisaron 213 capturas locales de calibración, con una apertura positiva y ninguna falsa apertura en las restantes. Son pruebas de imagen y de lógica; la compatibilidad con cada HUD real debe comprobarse en el juego.
 
 El programa conserva localmente un diagnóstico y, como máximo, la última imagen pequeña de un aviso reconocido. No graba secuencias ni transmite capturas.
 

@@ -17,9 +17,10 @@ $options=@('/nologo','/optimize+','/codepage:65001',
 if($LASTEXITCODE -ne 0) { throw 'No se pudo compilar MisCofres.' }
 if(-not $SkipTests) {
     $testExe=Join-Path $output.FullName 'RegressionTests.exe'
-    & $compiler $options /target:exe /main:RegressionTests ('/out:'+$testExe) $sources (Join-Path $PSScriptRoot 'tests\RegressionTests.cs')
+    $testSources=@(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'tests') -Filter '*.cs' | ForEach-Object { $_.FullName })
+    & $compiler $options /target:exe /main:RegressionTests ('/out:'+$testExe) $sources $testSources
     if($LASTEXITCODE -ne 0) { throw 'No se pudieron compilar las pruebas.' }
-    & $testExe
+    & $testExe (Join-Path $PSScriptRoot 'tests\fixtures')
     if($LASTEXITCODE -ne 0) { throw 'Fallo en las pruebas.' }
     $selfTest=Start-Process -FilePath $app -ArgumentList '--self-test' -WindowStyle Hidden -Wait -PassThru
     if($selfTest.ExitCode -ne 0) { throw 'Fallo en las pruebas internas de guardado.' }
