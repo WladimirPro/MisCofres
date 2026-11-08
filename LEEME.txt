@@ -32,6 +32,8 @@ ultrapanoramicos y usando coordenadas fisicas con la escala de Windows.
 Exige al menos dos fotogramas coincidentes para reducir detecciones aisladas.
 Probado con imagenes reescaladas y normalizacion de 1080p, 1440p, 4K y
 ultrapanoramico. Esas pruebas no sustituyen comprobar cada HUD dentro del juego.
+La version 1.1.1 incorpora muestras reales de los HUD al 50 y al 70,
+incluyendo el cambio de forma de las letras. No baja el umbral global.
 Puede omitir cofres si no aparece el aviso, si se superponen avisos o si
 cambias el idioma o el texto queda demasiado pequeno. No garantiza 100%.
 Evita repetir el mismo aviso y deja al menos 2,5 segundos entre detecciones.

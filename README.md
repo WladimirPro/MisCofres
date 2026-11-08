@@ -33,6 +33,8 @@ Si necesitas el detector anterior, desactiva esa opción y ajusta la zona y esca
 
 Validación de v1.1: pruebas con un recorte real del aviso reescalado a 1–3 veces el tamaño de referencia, normalización de 1080p/1440p/4K/ultrapanorámico y rechazo de un aviso de escudo roto. Además se revisaron 213 capturas locales de calibración, con una apertura positiva y ninguna falsa apertura en las restantes. Son pruebas de imagen y de lógica; la compatibilidad con cada HUD real debe comprobarse en el juego.
 
+En v1.1.1 se añadió una muestra **real del HUD al 70**, cuyo dibujo de letras difería del HUD al 50 y no se reproducía simplemente reescalando la primera muestra. La secuencia real de 449 capturas cuenta una apertura, sin duplicados. Se mantuvo el umbral de detección y se volvieron a comprobar las capturas negativas. Esto corrige el caso observado; otros HUD todavía requieren validación real.
+
 El programa conserva localmente un diagnóstico y, como máximo, la última imagen pequeña de un aviso reconocido. No graba secuencias ni transmite capturas.
 
 ## Compilar y comprobar

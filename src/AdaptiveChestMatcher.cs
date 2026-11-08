@@ -7,7 +7,15 @@ using System.Runtime.InteropServices;
 // Finds text-sized connected groups before normalizing the COFRE glyphs.
 // Work depends on the captured pixels, rather than dozens of full-image scales.
 sealed class AdaptiveChestMatcher {
-    readonly bool[] reference=new bool[25*7];
+    sealed class Reference {
+        public readonly int Width,Height;
+        public readonly bool[] Ink;
+        public Reference(int width,string[] rows) {
+            Width=width; Height=rows.Length; Ink=new bool[Width*Height];
+            for(int y=0;y<Height;y++) for(int x=0;x<Width;x++) Ink[y*Width+x]=rows[y][x]=='#';
+        }
+    }
+    readonly Reference[] references;
     public AdaptiveChestMatcher() {
         string[] rows={
             "..##....##...#.#####..###...",
@@ -18,7 +26,20 @@ sealed class AdaptiveChestMatcher {
             "#..##.#..##.#...#.##.#......",
             "####..####..#...#.##.###...."
         };
-        for(int y=0;y<7;y++) for(int x=0;x<25;x++) reference[y*25+x]=rows[y][x]=='#';
+        // Independently captured rasterizations: HUD 50 and HUD 70.
+        // Different glyph hinting cannot be reproduced by resizing only HUD 50.
+        references=new[]{new Reference(25,rows),new Reference(35,new[]{
+            "..#####...#####..#####.######.#####",
+            ".##..##..##..##..#####.##..##.###..",
+            ".##..##..##..###.##....##..#####...",
+            "##......##...#####....##...####....",
+            "##......##...##.#####.##..##.#####.",
+            "##...##.##...##.#####.#####..##....",
+            "##...##.##...##.##....##.##..##....",
+            "##..##..##..##..##....##.###.##....",
+            "######..######..##....##..##.#####.",
+            "..#.......#...............#........"
+        })};
     }
     public double Score(Bitmap image,out Rectangle location) {
         location=Rectangle.Empty;
@@ -41,19 +62,21 @@ sealed class AdaptiveChestMatcher {
     }
     double CompareAdjusted(bool[] mask,int width,int height,Rectangle box) {
         double best=0;
+        foreach(var reference in references)
         for(int left=-1;left<=1;left++) for(int top=-1;top<=1;top++)
             for(int right=-1;right<=1;right++) for(int bottom=-1;bottom<=1;bottom++) {
                 var adjusted=Rectangle.FromLTRB(box.Left+left,box.Top+top,box.Right+right,box.Bottom+bottom);
                 if(adjusted.Left<0||adjusted.Top<0||adjusted.Right>width||adjusted.Bottom>height||adjusted.Width<10||adjusted.Height<4) continue;
-                best=Math.Max(best,Compare(mask,width,adjusted));
+                best=Math.Max(best,Compare(mask,width,adjusted,reference));
+                if(best>=.995) return best;
             }
         return best;
     }
-    double Compare(bool[] mask,int stride,Rectangle box) {
+    double Compare(bool[] mask,int stride,Rectangle box,Reference reference) {
         double intersection=0,observed=0,expected=0;
-        for(int y=0;y<7;y++) for(int x=0;x<25;x++) {
-            double left=box.Left+x*box.Width/25.0, right=box.Left+(x+1)*box.Width/25.0;
-            double top=box.Top+y*box.Height/7.0,bottom=box.Top+(y+1)*box.Height/7.0;
+        for(int y=0;y<reference.Height;y++) for(int x=0;x<reference.Width;x++) {
+            double left=box.Left+x*box.Width/(double)reference.Width, right=box.Left+(x+1)*box.Width/(double)reference.Width;
+            double top=box.Top+y*box.Height/(double)reference.Height,bottom=box.Top+(y+1)*box.Height/(double)reference.Height;
             double white=0;
             for(int py=(int)Math.Floor(top);py<(int)Math.Ceiling(bottom);py++)
                 for(int px=(int)Math.Floor(left);px<(int)Math.Ceiling(right);px++) {
@@ -61,7 +84,7 @@ sealed class AdaptiveChestMatcher {
                     if(mask[py*stride+px]) white+=weight;
                 }
             double ink=white/((right-left)*(bottom-top));
-            bool expectedInk=reference[y*25+x];
+            bool expectedInk=reference.Ink[y*reference.Width+x];
             if(expectedInk) { expected++; intersection+=ink; }
             observed+=ink;
         }
