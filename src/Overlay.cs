@@ -36,6 +36,7 @@ sealed class CounterWindow : Form {
     readonly Bitmap chest;
     readonly NotifyIcon tray = new NotifyIcon();
     readonly System.Windows.Forms.Timer flash = new System.Windows.Forms.Timer();
+    readonly System.Windows.Forms.Timer progressSync = new System.Windows.Forms.Timer();
     readonly ContextMenuStrip menu = new ContextMenuStrip();
     readonly string positionPath;
     readonly string settingsPath;
@@ -100,7 +101,7 @@ sealed class CounterWindow : Form {
         moveItem.Click+=delegate { SetMoving(!moving); }; menu.Items.Add(moveItem);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Reiniciar total...",null,delegate {
-            if(MessageBox.Show("Tu total es de "+store.Count+" cofres.\nSolo esta accion reinicia el progreso. ¿Quieres ponerlo en cero?","Reiniciar total",MessageBoxButtons.YesNo,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2)==DialogResult.Yes) Save(0);
+            if(MessageBox.Show("Tu total es de "+store.Count+" cofres.\nSolo esta accion reinicia el progreso. ¿Quieres ponerlo en cero?","Reiniciar total",MessageBoxButtons.YesNo,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2)==DialogResult.Yes) PersistAction(store.Reset);
         });
         menu.Items.Add("Salir",null,delegate { Close(); });
         using(var small=new Bitmap(chest,32,32)) {
@@ -109,7 +110,10 @@ sealed class CounterWindow : Form {
             finally { DestroyIcon(iconHandle); }
         }
         tray.ContextMenuStrip=menu; tray.Visible=true; tray.DoubleClick+=delegate { OpenSettings(); };
-        flash.Interval=180; flash.Tick+=delegate { highlighted=false; flash.Stop(); Render(); };
+        flash.Interval=180; flash.Tick+=delegate { highlighted=false; flash.Stop(); try { Render(); } catch(Exception ex) { VisualWarning(ex.Message); } };
+        progressSync.Interval=1000;
+        progressSync.Tick+=delegate { try { if(store.Refresh()) UpdateTray(); Render(); if(settingsWindow!=null&&!settingsWindow.IsDisposed&&settingsWindow.Visible) settingsWindow.RefreshCountPreview(); } catch(Exception ex) { VisualWarning(ex.Message); } };
+        progressSync.Start();
         UpdateTray();
     }
     protected override void OnHandleCreated(EventArgs e) {
@@ -224,11 +228,17 @@ sealed class CounterWindow : Form {
     }
     void Change(int delta) {
         if(delta>0 && store.Count==Int64.MaxValue) return;
-        Save(Math.Max(0,store.Count+delta));
+        PersistAction(delegate { store.Adjust(delta); });
     }
-    void Save(long value) {
-        try { store.Set(value); highlighted=true; flash.Start(); UpdateTray(); Render(); }
-        catch(Exception ex) { MessageBox.Show("No se pudo guardar. El total no cambio.\n"+ex.Message,"Error de guardado"); }
+    void PersistAction(Action action) {
+        try { action(); }
+        catch(Exception ex) { MessageBox.Show("No se pudo guardar el cambio. No se ha reiniciado el progreso.\n"+ex.Message,"Error de guardado"); return; }
+        try { highlighted=true; flash.Start(); UpdateTray(); Render(); }
+        catch(Exception ex) { VisualWarning("El progreso se guardo, pero fallo la actualizacion de la imagen: "+ex.Message); }
+        if(store.LastWarning!=null) VisualWarning(store.LastWarning);
+    }
+    void VisualWarning(string message) {
+        try { File.WriteAllText(Path.Combine(Path.GetDirectoryName(store.Path),"estado-visual.txt"),DateTime.UtcNow.ToString("o")+" "+message); } catch(IOException) { }
     }
     void UpdateTray() { tray.Text="Cofres: "+store.Count+ (moving ? " · mover activado" : automatic ? " · AUTO local" : " · lateral superior +1"); }
     public Bitmap CreateFrame() {
@@ -280,7 +290,7 @@ sealed class CounterWindow : Form {
         }
     }
     protected override void Dispose(bool disposing) {
-        if(disposing) { if(settingsWindow!=null&&!settingsWindow.IsDisposed) settingsWindow.Close(); if(autoDetector!=null) autoDetector.Dispose(); tray.Visible=false; if(tray.Icon!=null) tray.Icon.Dispose(); tray.Dispose(); flash.Dispose(); menu.Dispose(); chest.Dispose(); }
+        if(disposing) { progressSync.Dispose(); if(settingsWindow!=null&&!settingsWindow.IsDisposed) settingsWindow.Close(); if(autoDetector!=null) autoDetector.Dispose(); tray.Visible=false; if(tray.Icon!=null) tray.Icon.Dispose(); tray.Dispose(); flash.Dispose(); menu.Dispose(); chest.Dispose(); }
         base.Dispose(disposing);
     }
 }

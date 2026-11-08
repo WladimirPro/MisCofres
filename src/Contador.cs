@@ -5,34 +5,6 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-sealed class CounterStore {
-    public readonly string Path;
-    public long Count { get; private set; }
-    public CounterStore(string path) {
-        Path = path;
-        if (File.Exists(path)) Count = Read(path);
-        else if (File.Exists(path + ".bak")) Count = Read(path + ".bak");
-    }
-    static long Read(string p) {
-        long n;
-        if (!Int64.TryParse(File.ReadAllText(p).Trim(), out n) || n < 0)
-            throw new IOException("El archivo del total no es valido. Se conserva para recuperarlo: " + p);
-        return n;
-    }
-    public void Set(long n) {
-        if (n < 0) n = 0;
-        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path));
-        string temp = Path + ".tmp";
-        using (var f = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None)) {
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(n.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            f.Write(data, 0, data.Length); f.Flush(true);
-        }
-        if (File.Exists(Path)) File.Replace(temp, Path, Path + ".bak");
-        else File.Move(temp, Path);
-        Count = n;
-    }
-}
-
 static class Program {
     public static bool StartWithSettings;
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern IntPtr FindWindow(string name,string title);
@@ -63,21 +35,22 @@ static class Program {
             if (s.Count != 0) throw new Exception("Initial count");
             s.Set(1); s.Set(2);
             if (new CounterStore(path).Count != 2) throw new Exception("Persistence");
-            s.Set(-1);
-            if (s.Count != 0) throw new Exception("Negative count");
+            bool negativeRejected=false;
+            try { s.Set(-1); } catch(ArgumentOutOfRangeException) { negativeRejected=true; }
+            if(!negativeRejected || s.Count!=2) throw new Exception("Negative count protection");
+            s.Reset();
             s.Set(25); s.Set(26);
             if (File.ReadAllText(path + ".bak") != "25") throw new Exception("Backup");
             File.Delete(path);
-            if (new CounterStore(path).Count != 25) throw new Exception("Recovery");
+            if (new CounterStore(path).Count != 26) throw new Exception("Journal recovery");
             File.WriteAllText(path, "invalid");
-            bool rejected = false;
-            try { new CounterStore(path); } catch (IOException) { rejected = true; }
-            if (!rejected) throw new Exception("Corruption protection");
+            if(new CounterStore(path).Count!=26) throw new Exception("Corrupt snapshot recovery");
             File.WriteAllText(Path.Combine(dir, "PASSED"), "OK");
         } catch (Exception ex) {
             File.WriteAllText(Path.Combine(Path.GetTempPath(), "MisCofres-test-failure.txt"), ex.ToString());
             Environment.ExitCode = 1; return;
         }
-        File.Delete(path); File.Delete(path + ".bak"); File.Delete(Path.Combine(dir, "PASSED")); Directory.Delete(dir);
+        foreach(var file in Directory.GetFiles(dir)) File.Delete(file);
+        Directory.Delete(dir);
     }
 }

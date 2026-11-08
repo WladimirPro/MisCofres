@@ -21,13 +21,36 @@ static class RegressionTests {
             File.WriteAllText(prefsPath,"<AppSettings><SizePercent>100</SizePercent></AppSettings>");
             Assert(AppSettings.Load(prefsPath).AdaptiveHud,"Legacy settings did not enable adaptive HUD");
             Assert(new CounterStore(path).Count==42,"Saving settings reset progress");
-            counter.Set(0);
+            bool accidentalResetRejected=false;
+            try { counter.Set(0); } catch(InvalidOperationException) { accidentalResetRejected=true; }
+            Assert(accidentalResetRejected&&new CounterStore(path).Count==42,"Ordinary save reset progress");
+            counter.Reset();
             Assert(new CounterStore(path).Count==0,"Explicit reset did not persist");
             counter.Set(50); counter.Set(51); File.Delete(path);
-            Assert(new CounterStore(path).Count==50,"Backup recovery failed");
+            Assert(new CounterStore(path).Count==51,"Journal did not recover the newest total");
             File.WriteAllText(path,"corrupt");
-            bool rejected=false; try { new CounterStore(path); } catch(IOException) { rejected=true; }
-            Assert(rejected,"Corrupt data must not silently reset to zero");
+            Assert(new CounterStore(path).Count==51,"Corrupt snapshot reset progress");
+            File.WriteAllText(path,"0");
+            Assert(new CounterStore(path).Count==51,"Unconfirmed zero snapshot reset progress");
+            var stale=new CounterStore(path);
+            counter.Adjust(1); stale.Adjust(1);
+            Assert(stale.Count==53,"Stale window overwrote newer progress");
+            Assert(counter.Refresh()&&counter.Count==53,"Live refresh did not reconcile saved progress");
+            File.AppendAllText(path+".history","partial interrupted write");
+            var recovered=new CounterStore(path);
+            Assert(recovered.Count==53,"Partial trailing write lost progress");
+            recovered.Adjust(1);
+            Assert(new CounterStore(path).Count==54,"Append after interrupted write failed");
+            recovered.Reset();
+            Assert(new CounterStore(path).Count==0,"Confirmed reset must survive reopening");
+            string damaged=Path.Combine(folder,"damaged.txt");
+            var damagedStore=new CounterStore(damaged); damagedStore.Set(7);
+            var journalText=File.ReadAllText(damaged+".history");
+            int lastRecord=journalText.LastIndexOf("|SET|",StringComparison.Ordinal);
+            journalText=journalText.Substring(0,lastRecord)+journalText.Substring(lastRecord).Replace("|SET|7|","|SET|8|");
+            File.WriteAllText(damaged+".history",journalText);
+            bool damageRejected=false; try { new CounterStore(damaged); } catch(IOException) { damageRejected=true; }
+            Assert(damageRejected&&File.ReadAllText(damaged)=="7","Corrupt journal silently restored zero");
             var input=new SideButtonInput();
             Assert(!input.ProcessRaw(0x40),"Lower side button must remain free");
             Assert(input.ProcessRaw(0x100),"Upper side button must count");

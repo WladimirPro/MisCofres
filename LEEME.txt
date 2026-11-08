@@ -58,9 +58,13 @@ El total se conserva entre partidas y reinicios en:
 No se reinicia por dia, por partida, al cerrar ni al actualizar la app.
 Solo se reinicia al elegir Reiniciar total y confirmar Si (No es el valor inicial).
 %LOCALAPPDATA%\MisCofres\total.txt
-total.txt.bak conserva el valor anterior como respaldo.
+Desde v1.1.2, total.txt.history es el registro principal protegido.
+total.txt es una copia legible; total.txt.bak conserva el valor anterior.
+Si total.txt se pierde, se dana o se cambia a cero sin confirmacion,
+el registro recupera el progreso. Copia la carpeta completa al cambiar de PC.
 posicion.txt guarda una posicion personalizada al mover el contador.
-Si no se puede guardar, aparece un aviso y el total no cambia.
+Si no se puede guardar el cambio en el registro, aparece un aviso.
+Un fallo al dibujar el numero no reinicia ni borra lo ya guardado.
 Usa la misma cuenta de Windows. No se sincroniza entre equipos.
 
 El detector deja un diagnostico local y como maximo una ultima imagen

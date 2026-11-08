@@ -19,7 +19,11 @@ El ejecutable no tiene firma digital. Windows o un antivirus pueden bloquearlo p
 - **Ctrl+F10:** activar o terminar el modo de arrastrar el contador.
 - Doble clic en el icono junto al reloj o volver a abrir la app: abrir ajustes.
 
-Los datos están en `%LOCALAPPDATA%\MisCofres`. `total.txt` guarda el total y `total.txt.bak` conserva el valor anterior. `ajustes.xml` guarda las preferencias. Conserva una copia de esa carpeta si cambias de PC. Esos datos no se incluyen en las descargas.
+Los datos están en `%LOCALAPPDATA%\MisCofres`. Desde v1.1.2, **`total.txt.history` es el registro principal**: anota cada cambio, lo verifica con una suma de integridad y lo vacía a disco antes de mostrarlo. `total.txt` es una copia legible del total y `total.txt.bak` conserva su valor anterior. `ajustes.xml` guarda las preferencias. Conserva una copia de **toda esa carpeta**, incluido el archivo `.history`, si cambias de PC. Esos datos no se incluyen en las descargas.
+
+La primera apertura de v1.1.2 importa el total existente sin reiniciarlo. Un `total.txt` dañado, ausente o reemplazado por cero se recupera del registro. Las escrituras incompletas al final del registro no sustituyen un cambio confirmado. Una ventana atrasada aplica su incremento al estado guardado más reciente. La imagen y su vista previa se actualizan periódicamente. Un error al dibujar el contador se informa por separado de un error al guardar.
+
+Esta protección no puede impedir que se pierda el progreso si se eliminan todos sus archivos o falla el almacenamiento: conserva copias de esa carpeta. Si el registro completo es ilegible, la app muestra un error y no inicia un contador nuevo en cero.
 
 ## Automático local
 

@@ -122,6 +122,7 @@ sealed class SettingsForm : Form {
         }
         if(previous!=null) previous.Dispose();
     }
+    public void RefreshCountPreview() { UpdatePreview(); }
     void Place(int where) {
         var area=Screen.PrimaryScreen.WorkingArea; int width=(int)(156*size.Value/100);
         x.Value=where==0 ? area.Right-width-4 : area.Left+24;

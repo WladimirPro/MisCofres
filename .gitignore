@@ -1,7 +1,7 @@
 dist/
 *.tmp
 *.bak
-total.txt
+total.txt*
 ajustes.xml
 posicion.txt
 automatico-*.txt
