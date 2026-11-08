@@ -1,0 +1,68 @@
+MIS COFRES - contador local para Windows
+
+Abre MisCofres.exe. No requiere instalacion, Internet ni una sesion de ChatGPT.
+Solo se ve el cofre y el total debajo, sin fondo, debajo del minimapa.
+
+MENU DE AJUSTES
+F11 abre Ajustes. Tambien puedes hacer doble clic en el icono del cofre
+junto al reloj, o clic derecho y elegir Ajustes.
+Si vuelves a abrir el programa mientras esta encendido, se abre el menu.
+
+Apariencia: tamano 50-200%, opacidad 25-100%, color del numero, posicion
+X/Y, botones para colocar el contador y vista previa.
+Controles: lateral superior, lateral inferior, F5, F6, F7, F8 o desactivado.
+Automatico: activar/pausar, escala del aviso y zona de deteccion en %
+de la ventana del juego. Restaurar detector original recupera su calibracion.
+Aplicar guarda sin cerrar. Guardar y cerrar guarda y vuelve al juego.
+Cerrar descarta los cambios que todavia no hayas aplicado.
+Los ajustes se guardan por usuario en %LOCALAPPDATA%\MisCofres\ajustes.xml.
+No se comparten tus ajustes ni tu cuenta al enviar el ZIP a un amigo.
+
+AUTOMATICO
+Reconoce la forma de la palabra COFRE en el aviso de experiencia del juego.
+Examina una zona pequena de pantalla solo con Fortnite en primer plano.
+No usa IA, API ni servicios en la nube. No consume uso de ChatGPT al jugar.
+No abre cofres por ti: abrelos normalmente dentro del juego.
+
+Calibrado con una apertura real a 1920x1080 y con el HUD actual del usuario.
+Reconocio ese aviso en la captura y no lo confundio con otras 212 capturas.
+Tambien se observo una deteccion en vivo con el aviso +600 PE / COFRE.
+Puede omitir cofres si no aparece el aviso, si se superponen avisos o si
+cambias el idioma, la resolucion o la escala del HUD. No garantiza 100%.
+Evita repetir el mismo aviso y deja al menos 2,5 segundos entre detecciones.
+
+CONTROLES
+Lateral superior del mouse (XBUTTON2 / Adelante): sumar manualmente.
+Lateral inferior (XBUTTON1 / Atras): sigue libre para el pico.
+F9: restar uno si te equivocas o aparece un duplicado.
+F10: ocultar o mostrar el contador; continua contando al ocultarlo.
+F11: abrir Ajustes.
+Ctrl+F10: activar/desactivar mover; activado, arrastra el cofre.
+Al terminar de mover, desactiva el modo para dejar pasar los clics al juego.
+
+Haz clic derecho en el icono del cofre junto al reloj para pausar el
+automatico, sumar/restar, reiniciar el total o salir.
+Las correcciones manuales y automaticas cercanas (2,5 s) no se suman dos veces.
+El programa recuerda si dejaste el automatico activado o pausado.
+Usa Pantalla completa en ventana o modo Ventana para ver el contador.
+
+GUARDADO
+El total se conserva entre partidas y reinicios en:
+No se reinicia por dia, por partida, al cerrar ni al actualizar la app.
+Solo se reinicia al elegir Reiniciar total y confirmar Si (No es el valor inicial).
+%LOCALAPPDATA%\MisCofres\total.txt
+total.txt.bak conserva el valor anterior como respaldo.
+posicion.txt guarda una posicion personalizada al mover el contador.
+Si no se puede guardar, aparece un aviso y el total no cambia.
+Usa la misma cuenta de Windows. No se sincroniza entre equipos.
+
+El detector deja un diagnostico local y como maximo una ultima imagen
+del aviso detectado. Esta version ya no graba secuencias de calibracion.
+No lee memoria del juego, no lo modifica ni pulsa teclas por ti.
+
+El PNG y el icono del cofre estan integrados en el ejecutable.
+cofre.ico permite personalizar un acceso directo con el mismo cofre.
+Los archivos .cs incluyen el codigo.
+PNG del cofre de Treasure Hunters: Fortnite Wiki / Fortnite, Epic Games.
+https://fortnite.weirdgloop.org/w/Chest
+https://fortnite.weirdgloop.org/images/Chest_%28Treasure_Hunters%29_-_Container_-_Fortnite.png

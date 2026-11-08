@@ -1,0 +1,10 @@
+dist/
+*.tmp
+*.bak
+total.txt
+ajustes.xml
+posicion.txt
+automatico-*.txt
+automatico-*.png
+calibracion/
+work/
